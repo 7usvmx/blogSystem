@@ -70,4 +70,9 @@ But `HasMany` is a class.
   {
     return $this->hasMany(Blog::class);
   }
+
+  public function comments()
+  {
+    return $this->hasMany(Comment::class);
+  }
 }

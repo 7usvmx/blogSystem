@@ -1,8 +1,8 @@
 @extends('layouts.themelayout.master')
-@section('title', "Add Blog")
-@section('hero-title', 'Add Blog')
-@section('hero-main-title', 'Add Blog')
-@section('hero-sub-title', 'Add Blog')
+@section('title', 'Edit Blog ' . $blog->name)
+@section('hero-title', $blog->name)
+@section('hero-main-title', 'Edit Blog')
+@section('hero-sub-title', $blog->name)
 @section('content')
 @include('layouts.themelayout.partial.hero')
 
@@ -15,9 +15,9 @@
 
           <!-- Header -->
           <div class="bg-primary text-white text-center p-4">
-            <h4 class="fw-bold mb-1">Create New Blog</h4>
+            <h4 class="fw-bold mb-1">Edit Blog</h4>
             <p class="mb-0 small opacity-75">
-              Publish a new article to your website
+              Edit a new article to your website
             </p>
           </div>
 
@@ -36,15 +36,15 @@
             </div>
             @endif
 
-            <form action="{{ route('blog.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('blog.update', $blog) }}" method="POST" enctype="multipart/form-data">
               @csrf
-
+              @method('PUT')
               <!-- Blog Title -->
               <div class="mb-4">
                 <label class="form-label fw-semibold">
                   Blog Title <span class="text-danger">*</span>
                 </label>
-                <input type="text" name="name" value="{{ old('name') }}" placeholder="Enter blog title" class="form-control form-control-lg rounded-3 shadow-sm @error('name') is-invalid @enderror">
+                <input type="text" name="name" value="{{ $blog->name }}" placeholder="Enter blog title" class="form-control form-control-lg rounded-3 shadow-sm @error('name') is-invalid @enderror">
                 @error('name')
                 <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -56,7 +56,7 @@
                 <!-- Image -->
                 <div class="col-md-6">
                   <label class="form-label fw-semibold">
-                    Blog Image <span class="text-danger">*</span>
+                    Blog Image <span class="text-muted">(Optional)</span>
                   </label>
                   <input type="file" name="image" class="form-control rounded-3 shadow-sm @error('image') is-invalid @enderror ">
                   @error('image')
@@ -67,13 +67,13 @@
                 <!-- Category -->
                 <div class="col-md-6 form-group">
                   <label class="form-label fw-semibold">
-                    Category <span class="text-danger">*</span>
+                    Category <span class="text-muted">(Optional)</span>
                   </label>
                   <select name="category_id" class="form-select form-control form-select-lg rounded-3 shadow-sm @error('category_id') is-invalid @enderror">
                     <option value="">Choose category</option>
                     @if (count($categories) > 0)
                     @foreach ($categories as $category)
-                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                    <option value="{{ $category->id }}" {{ $blog->category_id == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                     @endforeach
                     @endif
                   </select>
@@ -89,7 +89,7 @@
                 <label class="form-label fw-semibold">
                   Blog Content <span class="text-danger">*</span>
                 </label>
-                <textarea name="description" rows="7" class="form-control form-group rounded-3 shadow-sm @error('description') is-invalid @enderror" placeholder="Write blog content here...">{{ old('description') }}</textarea>
+                <textarea name="description" rows="7" class="form-control form-group rounded-3 shadow-sm @error('description') is-invalid @enderror" placeholder="Write blog content here...">{{ $blog->description }}</textarea>
                 @error('description')
                 <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
