@@ -16,17 +16,17 @@ $categories = \App\Models\Category::all();
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse offset" id="navbarSupportedContent">
           <ul class="nav navbar-nav menu_nav justify-content-center">
-            <li class="nav-item active"><a class="nav-link" href="index">Home</a></li>
+            <li class="nav-item active"><a class="nav-link" href="{{route('theme.index')}}">Home</a></li>
             <li class="nav-item submenu dropdown">
               <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
                 aria-expanded="false">Categories</a>
               <ul class="dropdown-menu">
                 @foreach ($categories as $category)
-                <li class="nav-item"><a class="nav-link" href="blog-details">{{ $category->name }}</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{route('theme.categories', $category->slug)}}">{{ $category->name }}</a></li>
                 @endforeach
               </ul>
             </li>
-            <li class="nav-item"><a class="nav-link" href="contact">Contact</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{route('theme.contact')}}">Contact</a></li>
           </ul>
 
           <!-- Add new blog -->
@@ -44,7 +44,7 @@ $categories = \App\Models\Category::all();
                   <i class="fa fa-user"></i> {{ Auth::user()->name }}
                 </a>
                 <ul class="dropdown-menu">
-                  <li class="nav-item"><a class="nav-link" href="blog-details">My Blogs</a></li>
+                  <li class="nav-item"><a class="nav-link" href="{{ route('blog.index') }}">My Blogs</a></li>
                   <li class="nav-item"><a class="nav-link" href="blog-details">My Profile</a></li>
                   <form action="{{route('logout')}}" method="post">
                     @csrf

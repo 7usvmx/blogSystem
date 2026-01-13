@@ -6,15 +6,31 @@ use App\Models\Blog;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Http\Requests\StoreBlogRequest;
+use App\Http\Requests\EditBlogRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class BlogController extends Controller
+class BlogController extends Controller implements HasMiddleware
 {
+
+  public static function middleware(): array
+  {
+    return [
+      new Middleware('auth', except: ['show']),
+    ];
+  }
+
 
   /**
    * Display a listing of the resource.
    */
-  public function index() {}
+  public function index()
+  {
+    $blogs = Blog::where("user_id", Auth::user()->id)->get();
+    return view("theme.blogs.myBlogs", compact("blogs"));
+  }
 
   /**
    * Show the form for creating a new resource.
@@ -28,25 +44,28 @@ class BlogController extends Controller
   /**
    * Store a newly created resource in storage.
    */
-  public function store(StoreBlogRequest $request)
+  public function store(StoreBlogRequest $validatedRequest)
   {
 
 
-    $data = $request->validated();
+    // $data = $validatedRequest->validated();
+    $data = $validatedRequest->validated();
 
     // Image processing
     // 1- Get image 
-    $image = $request->image;
+    $image = $validatedRequest->image;
     // 2- Generate image name
     $newImageName = time() . "_" . base64_encode($image->getClientOriginalName()) . "." . $image->getClientOriginalExtension();
-    // dd($newImageName, $request->file("image")->getClientOriginalName());
+    // dd($newImageName, $validatedRequest->file("image")->getClientOriginalName());
     // 3- Move image to public folder
     $image->storeAs("blogs/img", $newImageName, "public");
     // 4- Update image name in request
-    $request->merge(["image" => $newImageName]);
+    // $validatedRequest->merge(["image" => $newImageName]);
 
     $data['image'] = $newImageName;
     $data['user_id'] = Auth::user()->id;
+
+    // dd($validatedRequest);
 
     if (Blog::create($data)) {
       return redirect()->back()->with("success", "Blog created successfully");
@@ -60,8 +79,7 @@ class BlogController extends Controller
    */
   public function show(Blog $blog)
   {
-    // return view("theme.blogs.showBlog", compact("blog"));
-    return "show";
+    return view("theme.blogs.single-blog", compact("blog"));
   }
 
   /**
@@ -69,15 +87,52 @@ class BlogController extends Controller
    */
   public function edit(Blog $blog)
   {
-    return "edit";
+
+    if (Auth::user()->id != $blog->user_id) {
+      abort(403, "You are not authorized to edit this blog");
+    }
+    $categories = Category::all();
+    return view("theme.blogs.editBlog", compact("blog", "categories"));
   }
 
   /**
    * Update the specified resource in storage.
    */
-  public function update(Request $request, Blog $blog)
+  public function update(EditBlogRequest $request, Blog $blog)
   {
-    return "update";
+    if (Auth::user()->id != $blog->user_id) {
+      abort(403, "You are not authorized to edit this blog");
+    }
+
+    $data = $request->validated();
+
+    // Image processing
+    // 1- Get image 
+
+    if ($request->hasFile("image")) {
+
+
+      // Delete old image
+      if ($blog->image) {
+        Storage::delete("blogs/img/" . $blog->image);
+      }
+      $image = $request->image;
+      // 2- Generate image name
+      $newImageName = time() . "_" . base64_encode($image->getClientOriginalName()) . "." . $image->getClientOriginalExtension();
+      // dd($newImageName, $validatedRequest->file("image")->getClientOriginalName());
+      // 3- Move image to public folder
+      $image->storeAs("blogs/img", $newImageName, "public");
+      // 4- Update image name in request
+      $data['image'] = $newImageName;
+    }
+
+    $data['user_id'] = Auth::user()->id;
+
+    if ($blog->update($data)) {
+      return redirect()->back()->with("success", "Blog updated successfully");
+    } else {
+      return redirect()->back()->with("error", "Blog updated failed");
+    }
   }
 
   /**
@@ -85,6 +140,13 @@ class BlogController extends Controller
    */
   public function destroy(Blog $blog)
   {
-    return "destroy";
+    if (Auth::user()->id != $blog->user_id) {
+      abort(403, "You are not authorized to delete this blog");
+    }
+    if ($blog->delete()) {
+      return redirect()->back()->with("success", "Blog deleted successfully");
+    } else {
+      return redirect()->back()->with("error", "Blog deleted failed");
+    }
   }
 }

@@ -6,11 +6,13 @@ use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\CommentController;
 
 // Theme Routes
 Route::controller(ThemeController::class)->name('theme.')->group(function () {
 
   Route::get('/', 'index')->name('index');
+  Route::get('/categories/{category}', 'categories')->name('categories');
   Route::get('/contact', 'contact')->name('contact');
 });
 
@@ -29,7 +31,10 @@ Route::controller(CategoryController::class)->name('category.')->group(function 
 });
 
 // Blog Routes
-Route::resource('/blog', BlogController::class)->middleware('auth');
+Route::resource('blog', BlogController::class);
+
+// Comments Routes 
+Route::post('/comment/store', [CommentController::class, 'store'])->name('comment.store');
 
 Route::get('/dashboard', function () {
   return view('dashboard');
